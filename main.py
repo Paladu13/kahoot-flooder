@@ -310,9 +310,9 @@ if __name__ == "__main__":
         threads = PREDEFINED_THREADS
         names = PREDEFINED_NAMES
         kahoot_id = PREDEFINED_KAHOOT_ID
-        print(f"\n{Output.gray} {KahootFlooder.__time__("")} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Bot Amount: {Output.light_cyan}{threads}")
-        print(f"{Output.gray} {KahootFlooder.__time__("")} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Bot Names: {Output.light_cyan}{names}")
-        print(f"{Output.gray} {KahootFlooder.__time__("")} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Kahoot Game ID: {Output.light_cyan}{kahoot_id}\n")
+        print(f"\n{Output.gray} {KahootFlooder.__time__()} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Bot Amount: {Output.light_cyan}{threads}")
+        print(f"{Output.gray} {KahootFlooder.__time__()} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Bot Names: {Output.light_cyan}{names}")
+        print(f"{Output.gray} {KahootFlooder.__time__()} {Output.reset}({Output.cherry}?{Output.reset}) {Output.gray}Kahoot Game ID: {Output.light_cyan}{kahoot_id}\n")
 
         while True:
             while threading.active_count() - 1 < int(threads) + 1:
@@ -324,3 +324,4 @@ if __name__ == "__main__":
             time.sleep(1)
     except:
         pass
+
