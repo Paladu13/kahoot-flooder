@@ -306,9 +306,9 @@ class KahootFlooder:
         return datetime.now().strftime("%H:%M:%S")
 
 # Variables prédéfinies
-PREDEFINED_THREADS = 10  # Remplacez par le nombre de bots souhaité
-PREDEFINED_NAMES = "BotName"  # Remplacez par le nom des bots souhaité
-PREDEFINED_KAHOOT_ID = "123456"  # Remplacez par le code du jeu Kahoot souhaité
+PREDEFINED_THREADS = 100  # Remplacez par le nombre de bots souhaité
+PREDEFINED_NAMES = "la mere a nicolas"  # Remplacez par le nom des bots souhaité
+PREDEFINED_KAHOOT_ID = "2799153"  # Remplacez par le code du jeu Kahoot souhaité
 
 if __name__ == "__main__":
     try:
