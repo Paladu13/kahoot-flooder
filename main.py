@@ -1,4 +1,5 @@
 import os, re, sys, time, json, base64, random, string, ctypes, getpass, threading
+import platform
 
 try:
     import requests
@@ -9,22 +10,21 @@ try:
     import websocket
     import py_mini_racer
 except ModuleNotFoundError:
-    os.system("pip install requests uuid datetime colorama pystyle websocket-client py_mini_racer platform")
+    os.system("pip install requests")
+    os.system("pip install uuid")
+    os.system("pip install datetime")
+    os.system("pip install colorama")
+    os.system("pip install pystyle")
+    os.system("pip install websocket-client")
+    os.system("pip install py_mini_racer")
 
 from pystyle import Write, System, Colors, Colorate, Center
 from colorama import Fore, Style, init
 from datetime import datetime
-import platform
-
-# Variables prédéfinies
-PREDEFINED_THREADS = 40
-PREDEFINED_NAMES = "La mere a nicolas"
-PREDEFINED_KAHOOT_ID = "2799153"
 
 class Output:
     def colored_text(hex_color):
         ansi_color = f"\033[38;2;{int(hex_color[1:3], 16)};{int(hex_color[3:5], 16)};{int(hex_color[5:], 16)}m"
-
         return ansi_color
     
     reset = colored_text("#ffffff")
@@ -56,14 +56,16 @@ class Console:
             elapsed_hours = int((elapsed_time % 86400) // 3600)
             elapsed_minutes = int((elapsed_time % 3600) // 60)
             elapsed_seconds = int(elapsed_time % 60)
-            
+
             title = f'𝓚𝓪𝓱𝓸𝓸𝓽 𝓕𝓵𝓸𝓸𝓭𝓮𝓻 | 𝓢𝓾𝓬𝓬𝓮𝓼𝓼: {Stats.flooded} - 𝓕𝓪𝓲𝓵𝓮𝓭: {Stats.failed} - 𝓔𝓵𝓪𝓹𝓼𝓮𝓭: {elapsed_days}𝓭 {elapsed_hours}𝓱 {elapsed_minutes}𝓶 {elapsed_seconds}𝓼 | .𝓰𝓰/𝓻𝓪𝓭𝓾𝓬𝓸𝓻𝓭'
             
             if platform.system() == "Windows":
                 ctypes.windll.kernel32.SetConsoleTitleW(title)
             else:
                 print(title)
-                
+            
+            time.sleep(1)
+
 class Stats:
     flooded = 0
     failed = 0
@@ -226,75 +228,87 @@ class Solver:
         text = re.split("[{};]", self.challenge.encode('ascii', 'ignore').decode('utf-8').replace('\t', '', -1))
         js_code = [text[1] + "{", text[2] + ";", "return message.replace(/./g, function(char, position) {", text[7] + ";})};", text[0]]
         js = py_mini_racer.MiniRacer()
-        solved = js.eval("".join(js_code))
-        return self.__xorStrings__(solved, self.session_token)
+        solved = js.eval("".join(js_code).replace('this', ''))
+        result = self.__xorStrings__(solved, self.session_token)
+        return result
 
 class KahootFlooder:
     def __init__(self, id, name) -> None:
-        self.kahoot_id = id
-        self.bot_names = name
-
-        self.ack = 2
-        self.id = 6
-
-    def __time__(self) -> str:
-        return "{:%H:%M:%S}".format(datetime.now())
+        self.id = id
+        self.name = name
 
     def __flood__(self) -> None:
         try:
-            cookies = {
-                "generated_uuid": str(uuid.uuid4()),
-                "player": "active"
-            }
-
             headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0"
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
             }
-
-            r = requests.get(f'https://kahoot.it/reserve/session/{self.kahoot_id}/?{time.time()}', headers=headers, cookies=cookies)
             
-            start = time.time()
+            response = requests.get(f"https://kahoot.it/reserve/session/{self.id}/?{random.randint(100000, 999999)}", headers=headers)
+            response.raise_for_status()
 
-            challenge = Solver(
-                challenge=r.json()["challenge"],
-                token=r.headers["X-Kahoot-Session-Token"]
-            ).__solve__()
-
-            elapsed_time = time.time() - start
-            print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.light_blue}${Output.reset}) {Output.gray}Solved Challenge: {Output.light_cyan}{challenge[:60]}******** {Output.reset}In {elapsed_time:.2f}s")
+            data = response.json()
+            if "twoFactorAuth" in data and data["twoFactorAuth"] is not None:
+                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Two Factor Authentication is enabled for this session. Bot cannot join.{Output.reset}")
+                Stats.failed += 1
+                return
             
-            wsocket = websocket.create_connection(f'wss://kahoot.it/cometd/{self.kahoot_id}/{challenge}')
-            wsocket.send(json.dumps(Websockets.__connect__(self)))
-            cid = json.loads(wsocket.recv())[0]["clientId"]
-
-            wsocket.send(json.dumps(Websockets.__clientId__(self, cid)))
-            wsocket.recv()
-
-            wsocket.send(json.dumps(Websockets.__clientId2__(self, cid)))
-
-            success = False
-            while not success:
-                name = f"{self.bot_names}_{random.randint(999999, 9999999)}"
-                wsocket.send(json.dumps(Websockets.__connectID__(self, cid, self.kahoot_id, name)))
-                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.magenta}^{Output.reset}) {Output.magenta}Connected To Websocket: {Output.light_cyan}{name} {Output.reset}[{Output.orange}{cid}{Output.reset}]")
-                if '"loginResponse","cid":' in wsocket.recv():
-                    print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.green}+{Output.reset}) {Output.green}Successfully Joined: {Output.light_cyan}{name}")
-                    Stats.flooded += 1
-                    success = True
-
-            wsocket.send(json.dumps(Websockets.__keepInGame__(self, cid, self.kahoot_id)))
-            wsocket.send(json.dumps(Websockets.__metaConnect__(self, cid)))
-
-            while True:
-                self.id += 1
-                self.ack += 1
-
-                wsocket.send(json.dumps(Websockets.__ezFlooder__(self, cid, self.id, self.ack)))
-                wsocket.recv()
+            solved = Solver(data["challenge"]["challenge"], data["session"]["token"]).__solve__()
+            response = requests.post(
+                f"https://kahoot.it/reserve/session/{self.id}/join/?{random.randint(100000, 999999)}",
+                headers=headers,
+                json={"challengeResponse": solved, "deviceId": str(uuid.uuid4())}
+            )
+            response.raise_for_status()
+            data = response.json()
+            if "error" in data:
+                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Error: {data['error']}{Output.reset}")
+                Stats.failed += 1
+                return
             
-        except:
-            print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.strong_red}!{Output.reset}) {Output.red}ERROR: Failed To Connect Websocket.")
+            websocket.enableTrace(False)
+            ws = websocket.WebSocket()
+            ws.connect(data["session"]["webSocketUrl"].replace("wss://", "ws://"), http_proxy_host="127.0.0.1", http_proxy_port=8888)
+
+            ws.send(json.dumps(Websockets().__connect__()))
+            data = json.loads(ws.recv())[0]
+            if "error" in data:
+                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Error: {data['error']}{Output.reset}")
+                Stats.failed += 1
+                return
+
+            clientId = data["clientId"]
+            ws.send(json.dumps(Websockets().__clientId__(clientId)))
+            data = json.loads(ws.recv())[0]
+            if "error" in data:
+                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Error: {data['error']}{Output.reset}")
+                Stats.failed += 1
+                return
+
+            ws.send(json.dumps(Websockets().__clientId2__(clientId)))
+            ws.send(json.dumps(Websockets().__connectID__(clientId, self.id, self.name)))
+            data = json.loads(ws.recv())[0]
+            if "error" in data:
+                print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Error: {data['error']}{Output.reset}")
+                Stats.failed += 1
+                return
+
+            Stats.flooded += 1
+            while Stats.working:
+                ws.send(json.dumps(Websockets().__keepInGame__(clientId, self.id)))
+                time.sleep(5)
+                ws.send(json.dumps(Websockets().__metaConnect__(clientId)))
+        except Exception as e:
+            print(f"{Output.gray} {self.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Exception: {str(e)}{Output.reset}")
             Stats.failed += 1
+
+    @staticmethod
+    def __time__() -> str:
+        return datetime.now().strftime("%H:%M:%S")
+
+# Variables prédéfinies
+PREDEFINED_THREADS = 10  # Remplacez par le nombre de bots souhaité
+PREDEFINED_NAMES = "BotName"  # Remplacez par le nom des bots souhaité
+PREDEFINED_KAHOOT_ID = "123456"  # Remplacez par le code du jeu Kahoot souhaité
 
 if __name__ == "__main__":
     try:
@@ -328,6 +342,5 @@ if __name__ == "__main__":
                 )
                 threading.Thread(target=kahoot.__flood__).start()
             time.sleep(1)
-    except:
-        pass
-
+    except Exception as e:
+        print(f"{Output.gray} {KahootFlooder.__time__()} {Output.reset}({Output.cherry}!{Output.reset}) {Output.gray}Exception: {str(e)}{Output.reset}")
