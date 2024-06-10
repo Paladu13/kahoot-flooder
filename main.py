@@ -19,7 +19,7 @@ import platform
 # Variables prédéfinies
 PREDEFINED_THREADS = 40
 PREDEFINED_NAMES = "La mere a nicolas"
-PREDEFINED_KAHOOT_ID = "7158146"
+PREDEFINED_KAHOOT_ID = "2799153"
 
 class Output:
     def colored_text(hex_color):
