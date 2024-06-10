@@ -9,11 +9,12 @@ try:
     import websocket
     import py_mini_racer
 except ModuleNotFoundError:
-    os.system("pip install requests uuid datetime colorama pystyle websocket-client py_mini_racer")
+    os.system("pip install requests uuid datetime colorama pystyle websocket-client py_mini_racer platform")
 
 from pystyle import Write, System, Colors, Colorate, Center
 from colorama import Fore, Style, init
 from datetime import datetime
+import platform
 
 # Variables prédéfinies
 PREDEFINED_THREADS = 40
@@ -55,9 +56,14 @@ class Console:
             elapsed_hours = int((elapsed_time % 86400) // 3600)
             elapsed_minutes = int((elapsed_time % 3600) // 60)
             elapsed_seconds = int(elapsed_time % 60)
-
-            ctypes.windll.kernel32.SetConsoleTitleW(f'𝓚𝓪𝓱𝓸𝓸𝓽 𝓕𝓵𝓸𝓸𝓭𝓮𝓻 | 𝓢𝓾𝓬𝓬𝓮𝓼𝓼: {Stats.flooded} - 𝓕𝓪𝓲𝓵𝓮𝓭: {Stats.failed} - 𝓔𝓵𝓪𝓹𝓼𝓮𝓭: {elapsed_days}𝓭 {elapsed_hours}𝓱 {elapsed_minutes}𝓶 {elapsed_seconds}𝓼 | .𝓰𝓰/𝓻𝓪𝓭𝓾𝓬𝓸𝓻𝓭')
-
+            
+            title = f'𝓚𝓪𝓱𝓸𝓸𝓽 𝓕𝓵𝓸𝓸𝓭𝓮𝓻 | 𝓢𝓾𝓬𝓬𝓮𝓼𝓼: {Stats.flooded} - 𝓕𝓪𝓲𝓵𝓮𝓭: {Stats.failed} - 𝓔𝓵𝓪𝓹𝓼𝓮𝓭: {elapsed_days}𝓭 {elapsed_hours}𝓱 {elapsed_minutes}𝓶 {elapsed_seconds}𝓼 | .𝓰𝓰/𝓻𝓪𝓭𝓾𝓬𝓸𝓻𝓭'
+            
+            if platform.system() == "Windows":
+                ctypes.windll.kernel32.SetConsoleTitleW(title)
+            else:
+                print(title)
+                
 class Stats:
     flooded = 0
     failed = 0
