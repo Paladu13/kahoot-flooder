@@ -16,9 +16,9 @@ from colorama import Fore, Style, init
 from datetime import datetime
 
 # Variables prédéfinies
-PREDEFINED_THREADS = 50
-PREDEFINED_NAMES = "BotName"
-PREDEFINED_KAHOOT_ID = "123456"
+PREDEFINED_THREADS = 40
+PREDEFINED_NAMES = "La mere a nicolas"
+PREDEFINED_KAHOOT_ID = "7158146"
 
 class Output:
     def colored_text(hex_color):
